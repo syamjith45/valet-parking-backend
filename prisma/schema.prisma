@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model vehicles {
+  id               String    @id @default(uuid())
+  token            String    @unique
+  vehicle_number   String
+  customer_phone   String
+  zone             String
+  slot             String
+  state            String
+  parking_valet_id String?
+  retrieval_valet_id String?
+  scheduled_at     DateTime?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  parking_valet    valets?   @relation("ParkingValet", fields: [parking_valet_id], references: [id])
+  retrieval_valet  valets?   @relation("RetrievalValet", fields: [retrieval_valet_id], references: [id])
+}
+
+model valets {
+  id                  String   @id @default(uuid())
+  name                String
+  phone               String
+  status              String   @default("FREE") // FREE, BUSY, BREAK, OFF_DUTY
+  assignment_sequence Int      @default(0)
+  today_count         Int      @default(0)
+  total_count         Int      @default(0)
+  is_active           Boolean  @default(true)
+  authUserId          String?  @unique @map("auth_user_id")
+  last_login_at       DateTime?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  parked_vehicles     vehicles[] @relation("ParkingValet")
+  retrieved_vehicles  vehicles[] @relation("RetrievalValet")
+}
+
+model parking_zones {
+  id              String   @id @default(uuid())
+  zone_code       String   @unique
+  total_slots     Int
+  available_slots Int
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model staff {
+  id           String   @id @default(uuid())
+  authUserId   String   @unique @map("auth_user_id") // Mapped to snake_case column
+  name         String
+  phone        String   @unique
+  role         String   // ENTRY, EXIT, SUPERVISOR, BILLING
+  is_active    Boolean  @default(true)
+  last_login_at DateTime?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
+
+model mark_out_requests {
+  id             String   @id @default(uuid())
+  vehicle_id     String
+  requested_at   DateTime @default(now())
+  retrieve_at    DateTime
+  status         String   // PENDING, COMPLETED, CANCELLED
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+}

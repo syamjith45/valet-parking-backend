@@ -206,6 +206,7 @@ type DashboardStats {
 
 # Queries
 type Query {
+  hello: String
   # Vehicle queries
   vehicle(id: ID!): Vehicle
   vehicles(

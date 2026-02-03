@@ -35,8 +35,8 @@ export interface DataLoaders {
  */
 export interface UseCases {
     createVehicleEntry: any;
-    // markVehicleParked: any;
-    // requestMarkOut: any;
+    markVehicleParked: any;
+    requestMarkOut: any;
     assignValetRoundRobin: any;
     // Add more as needed
 }
@@ -70,7 +70,7 @@ function createDataLoaders(prisma: PrismaClient): DataLoaders {
         // Valet Loader
         valetLoader: new DataLoader<string, any>(
             async (ids: readonly string[]) => {
-                const valets = await prisma.valet.findMany({
+                const valets = await prisma.valets.findMany({
                     where: { id: { in: [...ids] } },
                 });
 
@@ -102,7 +102,7 @@ function createDataLoaders(prisma: PrismaClient): DataLoaders {
         // Parking Zone Loader
         zoneLoader: new DataLoader<string, any>(
             async (ids: readonly string[]) => {
-                const zones = await prisma.parkingZone.findMany({
+                const zones = await prisma.parking_zones.findMany({
                     where: { id: { in: [...ids] } },
                 });
 
@@ -115,7 +115,7 @@ function createDataLoaders(prisma: PrismaClient): DataLoaders {
         // Vehicle Loader
         vehicleLoader: new DataLoader<string, any>(
             async (ids: readonly string[]) => {
-                const vehicles = await prisma.vehicle.findMany({
+                const vehicles = await prisma.vehicles.findMany({
                     where: { id: { in: [...ids] } },
                 });
 

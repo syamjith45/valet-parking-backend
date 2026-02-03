@@ -12,7 +12,7 @@ import { join } from 'path';
 import 'dotenv/config';
 
 // Middleware
-import { authMiddleware } from './presentation/middleware/auth.middleware';
+import { authMiddleware, optionalAuthMiddleware } from './presentation/middleware/auth.middleware';
 
 // GraphQL
 import { createGraphQLContext } from './presentation/graphql/context';
@@ -103,7 +103,7 @@ async function startServer() {
   // GraphQL endpoint (with authentication)
   app.use(
     '/graphql',
-    authMiddleware, // Verify JWT
+    optionalAuthMiddleware, // Verify JWT if present, but allow public access
     expressMiddleware(apolloServer, {
       context: async ({ req }) => {
         return createGraphQLContext(req, prisma, useCases);

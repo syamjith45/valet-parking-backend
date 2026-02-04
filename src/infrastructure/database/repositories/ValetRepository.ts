@@ -43,7 +43,7 @@ export class ValetRepository implements IValetRepository {
     }
 
     async create(valet: Valet): Promise<Valet> {
-        const created = await this.prisma.valet.create({
+        const created = await this.prisma.valets.create({
             data: {
                 id: valet.id,
                 name: valet.name,

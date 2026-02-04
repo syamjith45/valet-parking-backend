@@ -7,7 +7,7 @@ export class ParkingZoneRepository implements IParkingZoneRepository {
 
     async findAvailableZone(): Promise<ParkingZone | null> {
         // Find zone with highest priority (lowest number) that has available slots
-        const zone = await this.prisma.parkingZone.findFirst({
+        const zone = await this.prisma.parking_zones.findFirst({
             where: {
                 available_slots: { gt: 0 },
                 is_active: true,
@@ -21,7 +21,7 @@ export class ParkingZoneRepository implements IParkingZoneRepository {
     }
 
     async decrementAvailableSlots(id: string): Promise<void> {
-        await this.prisma.parkingZone.update({
+        await this.prisma.parking_zones.update({
             where: { id },
             data: {
                 available_slots: {
@@ -32,7 +32,7 @@ export class ParkingZoneRepository implements IParkingZoneRepository {
     }
 
     async incrementAvailableSlots(id: string): Promise<void> {
-        await this.prisma.parkingZone.update({
+        await this.prisma.parking_zones.update({
             where: { id },
             data: {
                 available_slots: {
@@ -50,7 +50,7 @@ export class ParkingZoneRepository implements IParkingZoneRepository {
             dbZone.available_slots,
             dbZone.is_active,
             dbZone.created_at,
-            dbZone.updated_at,
+            undefined, // updatedAt - removed from DB
             dbZone.zone_name,
             dbZone.zone_description,
             dbZone.priority

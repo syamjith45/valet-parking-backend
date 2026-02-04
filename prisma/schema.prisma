@@ -9,31 +9,43 @@ datasource db {
 }
 
 model vehicles {
-  id               String    @id @default(uuid())
-  token            String    @unique
-  vehicle_number   String
-  customer_phone   String
-  zone             String
-  slot             String
-  state            String
-  parking_valet_id String?
-  retrieval_valet_id String?
-  scheduled_at     DateTime?
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
+  id                   String    @id @default(uuid())
+  token                String    @unique
+  vehicle_number       String
+  customer_phone       String
+  customer_type        String?
+  zone                 String
+  slot                 String
+  state                String
+  parking_valet_id     String?
+  retrieval_valet_id   String?
+  scheduled_at         DateTime?
+  arrived_at           DateTime  @default(now())
+  parked_at            DateTime?
+  markout_requested_at DateTime?
+  retrieval_started_at DateTime?
+  delivered_at         DateTime?
+  closed_at            DateTime?
+  entry_operator_id    String?
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
 
   parking_valet    valets?   @relation("ParkingValet", fields: [parking_valet_id], references: [id])
   retrieval_valet  valets?   @relation("RetrievalValet", fields: [retrieval_valet_id], references: [id])
+  entry_operator   staff?    @relation(fields: [entry_operator_id], references: [id]) // Assuming relation
 }
 
 model valets {
   id                  String   @id @default(uuid())
   name                String
-  phone               String
+  phone               String   @unique
+  employee_id         String?  @unique
   status              String   @default("FREE") // FREE, BUSY, BREAK, OFF_DUTY
   assignment_sequence Int      @default(0)
   today_count         Int      @default(0)
   total_count         Int      @default(0)
+  shift_start         DateTime? @db.Time
+  shift_end           DateTime? @db.Time
   is_active           Boolean  @default(true)
   authUserId          String?  @unique @map("auth_user_id")
   last_login_at       DateTime?
@@ -47,11 +59,13 @@ model valets {
 model parking_zones {
   id              String   @id @default(uuid())
   zone_code       String   @unique
+  zone_name       String?
+  zone_description String?
   total_slots     Int
   available_slots Int
+  priority        Int      @default(999)
   is_active       Boolean  @default(true)
   created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
 }
 
 model staff {
@@ -64,6 +78,8 @@ model staff {
   last_login_at DateTime?
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
+
+  entered_vehicles vehicles[]
 }
 
 model mark_out_requests {

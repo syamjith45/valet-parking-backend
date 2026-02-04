@@ -66,9 +66,55 @@ export class VehicleRepository implements IVehicleRepository {
             dbVehicle.zone,
             dbVehicle.slot,
             dbVehicle.state as VehicleState,
+            dbVehicle.customer_type,
+            dbVehicle.created_at, // arrivedAt -> created_at (DB mismatch work-around)
+            undefined, // parkedAt
+            undefined, // markoutRequestedAt
+            dbVehicle.scheduled_at,
+            undefined, // retrievalStartedAt
+            undefined, // deliveredAt
+            undefined, // closedAt
+            dbVehicle.entry_operator_id,
             dbVehicle.parking_valet_id,
             dbVehicle.retrieval_valet_id,
-            dbVehicle.scheduled_at
+            dbVehicle.created_at,
+            dbVehicle.updated_at
         );
+    }
+
+    async findActiveByVehicleNumber(vehicleNumber: string): Promise<Vehicle | null> {
+        const vehicle = await this.prisma.vehicles.findFirst({
+            where: {
+                vehicle_number: vehicleNumber,
+                state: {
+                    notIn: [VehicleState.DELIVERED, VehicleState.CLOSED]
+                }
+            },
+            include: {
+                parking_valet: true,
+                retrieval_valet: true,
+            },
+        });
+
+        return vehicle ? this.toDomain(vehicle) : null;
+    }
+
+    async findByDate(date: Date): Promise<Vehicle[]> {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const vehicles = await this.prisma.vehicles.findMany({
+            where: {
+                created_at: { // Fixed: arrived_at -> created_at
+                    gte: startOfDay,
+                    lte: endOfDay
+                }
+            }
+        });
+
+        return vehicles.map(v => this.toDomain(v));
     }
 }

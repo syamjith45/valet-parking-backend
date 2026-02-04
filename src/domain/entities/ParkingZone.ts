@@ -6,7 +6,10 @@ export class ParkingZone {
         public availableSlots: number,
         public isActive: boolean,
         public createdAt?: Date,
-        public updatedAt?: Date
+        public updatedAt?: Date, // Kept optional, but won't be populated
+        public zoneName?: string,
+        public zoneDescription?: string,
+        public priority: number = 999
     ) { }
 
     hasAvailability(): boolean {

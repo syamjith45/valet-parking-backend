@@ -7,14 +7,14 @@ export class ValetRepository implements IValetRepository {
     constructor(private prisma: PrismaClient) { }
 
     async findById(id: string): Promise<Valet | null> {
-        const valet = await this.prisma.valet.findUnique({
+        const valet = await this.prisma.valets.findUnique({
             where: { id },
         });
         return valet ? this.toDomain(valet) : null;
     }
 
     async findActive(): Promise<Valet[]> {
-        const valets = await this.prisma.valet.findMany({
+        const valets = await this.prisma.valets.findMany({
             where: { is_active: true },
             orderBy: { assignment_sequence: 'asc' },
         });
@@ -22,14 +22,14 @@ export class ValetRepository implements IValetRepository {
     }
 
     async findAll(): Promise<Valet[]> {
-        const valets = await this.prisma.valet.findMany({
+        const valets = await this.prisma.valets.findMany({
             orderBy: { name: 'asc' }
         });
         return valets.map(v => this.toDomain(v));
     }
 
     async update(valet: Valet): Promise<Valet> {
-        const updated = await this.prisma.valet.update({
+        const updated = await this.prisma.valets.update({
             where: { id: valet.id },
             data: {
                 status: valet.status,

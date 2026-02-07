@@ -153,8 +153,7 @@ export const resolvers = {
                 where: { id: input.vehicleId },
                 data: {
                     state: 'WAITING_MARKOUT',
-                    // markout_requested_at // Schema scan: model vehicles { ... id ... }
-                    // Schema has scheduled_at.
+                    markout_requested_at: new Date(),
                     scheduled_at: input.selectedMinutes > 0
                         ? new Date(Date.now() + input.selectedMinutes * 60000)
                         : new Date()
@@ -166,14 +165,20 @@ export const resolvers = {
             // Placeholder logic
             return context.prisma.vehicles.update({
                 where: { id: input.vehicleId },
-                data: { state: 'ON_THE_WAY' } // No retrieval_started_at in DB schema
+                data: {
+                    state: 'ON_THE_WAY',
+                    retrieval_started_at: new Date()
+                }
             });
         },
         markVehicleDelivered: async (_: any, { input }: any, context: GraphQLContext) => {
             // Placeholder logic
             return context.prisma.vehicles.update({
                 where: { id: input.vehicleId },
-                data: { state: 'DELIVERED' } // No delivered_at in DB schema
+                data: {
+                    state: 'DELIVERED',
+                    delivered_at: new Date()
+                }
             });
         },
         updateValetStatus: async (_: any, { input }: any, context: GraphQLContext) => {

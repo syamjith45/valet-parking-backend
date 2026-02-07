@@ -68,12 +68,12 @@ export class VehicleRepository implements IVehicleRepository {
             dbVehicle.state as VehicleState,
             dbVehicle.customer_type,
             dbVehicle.created_at, // arrivedAt -> created_at (DB mismatch work-around)
-            undefined, // parkedAt
-            undefined, // markoutRequestedAt
+            dbVehicle.parked_at, // parkedAt
+            dbVehicle.markout_requested_at, // markoutRequestedAt
             dbVehicle.scheduled_at,
-            undefined, // retrievalStartedAt
-            undefined, // deliveredAt
-            undefined, // closedAt
+            dbVehicle.retrieval_started_at, // retrievalStartedAt
+            dbVehicle.delivered_at, // deliveredAt
+            dbVehicle.closed_at, // closedAt
             dbVehicle.entry_operator_id,
             dbVehicle.parking_valet_id,
             dbVehicle.retrieval_valet_id,

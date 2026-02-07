@@ -105,9 +105,9 @@ export async function authMiddleware(
 
             req.user = {
                 id: staff.id,
-                authUserId: staff.authUserId,
+                authUserId: staff.authUserId!, // Safe because we queried by it
                 name: staff.name,
-                phone: staff.phone,
+                phone: staff.phone || '',
                 role: staff.role,
                 userType: 'STAFF',
                 isActive: staff.is_active,

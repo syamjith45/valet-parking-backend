@@ -11,7 +11,9 @@ export class MarkVehicleParkedUseCase {
         private stateTransitionService: StateTransitionService
     ) { }
 
-    async execute(vehicleId: string): Promise<Vehicle> {
+    async execute(input: { vehicleId: string; valetId?: string }): Promise<Vehicle> {
+        const { vehicleId } = input;
+
         // 1. Get vehicle
         const vehicle = await this.vehicleRepo.findById(vehicleId);
         if (!vehicle) throw new Error('Vehicle not found');

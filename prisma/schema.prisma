@@ -8,86 +8,137 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model markout_requests {
+  id               String   @id @default(uuid()) @db.Uuid
+  vehicle_id       String   @db.Uuid
+  selected_minutes Int
+  retrieve_at      DateTime
+  source           String
+  whatsapp_payload Json?
+  is_active        Boolean  @default(true)
+  requested_at     DateTime @default(now())
+
+  vehicle          vehicles @relation(fields: [vehicle_id], references: [id])
+}
+
+model parking_zones {
+  id               String   @id @default(uuid()) @db.Uuid
+  zone_code        String   @unique
+  zone_name        String?
+  zone_description String?
+  total_slots      Int
+  available_slots  Int
+  priority         Int      @default(999)
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+}
+
+model staff {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  phone         String    @unique
+  email         String?   @unique
+  role          String
+  authUserId    String?   @unique @map("auth_user_id") @db.Uuid
+  is_active     Boolean   @default(true)
+  created_at    DateTime  @default(now())
+  last_login_at DateTime?
+
+  entered_vehicles vehicles[]
+}
+
+model state_transitions {
+  id                String   @id @default(uuid()) @db.Uuid
+  vehicle_id        String   @db.Uuid
+  from_state        String?
+  to_state          String
+  triggered_by_type String?
+  triggered_by_id   String?  @db.Uuid
+  metadata          Json?
+  transitioned_at   DateTime @default(now())
+
+  vehicle           vehicles @relation(fields: [vehicle_id], references: [id])
+}
+
+model valet_assignments {
+  id               String    @id @default(uuid()) @db.Uuid
+  valet_id         String    @db.Uuid
+  vehicle_id       String    @db.Uuid
+  assignment_type  String
+  assigned_at      DateTime  @default(now())
+  started_at       DateTime?
+  completed_at     DateTime?
+  duration_seconds Int?
+
+  valet            valets    @relation(fields: [valet_id], references: [id])
+  vehicle          vehicles  @relation(fields: [vehicle_id], references: [id])
+}
+
+model valets {
+  id                  String    @id @default(uuid()) @db.Uuid
+  name                String
+  phone               String    @unique
+  employee_id         String?   @unique
+  status              String    @default("FREE")
+  assignment_sequence Int       @default(0)
+  today_count         Int       @default(0)
+  total_count         Int       @default(0)
+  shift_start         DateTime? @db.Time
+  shift_end           DateTime? @db.Time
+  is_active           Boolean   @default(true)
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  authUserId          String?   @unique @map("auth_user_id") @db.Uuid
+  last_login_at       DateTime?
+
+  parked_vehicles    vehicles[]          @relation("ParkingValet")
+  retrieved_vehicles vehicles[]          @relation("RetrievalValet")
+  valet_assignments  valet_assignments[]
+}
+
 model vehicles {
-  id                   String    @id @default(uuid())
+  id                   String    @id @default(uuid()) @db.Uuid
   token                String    @unique
   vehicle_number       String
   customer_phone       String
   customer_type        String?
   zone                 String
   slot                 String
-  state                String
-  parking_valet_id     String?
-  retrieval_valet_id   String?
-  scheduled_at         DateTime?
+  state                String    @default("PARKING")
   arrived_at           DateTime  @default(now())
   parked_at            DateTime?
   markout_requested_at DateTime?
+  scheduled_at         DateTime?
   retrieval_started_at DateTime?
   delivered_at         DateTime?
   closed_at            DateTime?
-  entry_operator_id    String?
+  entry_operator_id    String?   @db.Uuid
+  parking_valet_id     String?   @db.Uuid
+  retrieval_valet_id   String?   @db.Uuid
   created_at           DateTime  @default(now())
   updated_at           DateTime  @updatedAt
 
-  parking_valet    valets?   @relation("ParkingValet", fields: [parking_valet_id], references: [id])
-  retrieval_valet  valets?   @relation("RetrievalValet", fields: [retrieval_valet_id], references: [id])
-  entry_operator   staff?    @relation(fields: [entry_operator_id], references: [id]) // Assuming relation
+  parking_valet     valets?             @relation("ParkingValet", fields: [parking_valet_id], references: [id])
+  retrieval_valet   valets?             @relation("RetrievalValet", fields: [retrieval_valet_id], references: [id])
+  entry_operator    staff?              @relation(fields: [entry_operator_id], references: [id])
+  markout_requests  markout_requests[]
+  state_transitions state_transitions[]
+  valet_assignments valet_assignments[]
+  whatsapp_messages whatsapp_messages[]
 }
 
-model valets {
-  id                  String   @id @default(uuid())
-  name                String
-  phone               String   @unique
-  employee_id         String?  @unique
-  status              String   @default("FREE") // FREE, BUSY, BREAK, OFF_DUTY
-  assignment_sequence Int      @default(0)
-  today_count         Int      @default(0)
-  total_count         Int      @default(0)
-  shift_start         DateTime? @db.Time
-  shift_end           DateTime? @db.Time
-  is_active           Boolean  @default(true)
-  authUserId          String?  @unique @map("auth_user_id")
-  last_login_at       DateTime?
-  created_at          DateTime @default(now())
-  updated_at          DateTime @updatedAt
+model whatsapp_messages {
+  id                  String    @id @default(uuid()) @db.Uuid
+  vehicle_id          String?   @db.Uuid
+  message_type        String
+  phone_number        String
+  message_content     String?
+  whatsapp_message_id String?
+  status              String?   @default("PENDING")
+  error_message       String?
+  sent_at             DateTime  @default(now())
+  delivered_at        DateTime?
+  read_at             DateTime?
 
-  parked_vehicles     vehicles[] @relation("ParkingValet")
-  retrieved_vehicles  vehicles[] @relation("RetrievalValet")
-}
-
-model parking_zones {
-  id              String   @id @default(uuid())
-  zone_code       String   @unique
-  zone_name       String?
-  zone_description String?
-  total_slots     Int
-  available_slots Int
-  priority        Int      @default(999)
-  is_active       Boolean  @default(true)
-  created_at      DateTime @default(now())
-}
-
-model staff {
-  id           String   @id @default(uuid())
-  authUserId   String   @unique @map("auth_user_id") // Mapped to snake_case column
-  name         String
-  phone        String   @unique
-  role         String   // ENTRY, EXIT, SUPERVISOR, BILLING
-  is_active    Boolean  @default(true)
-  last_login_at DateTime?
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-
-  entered_vehicles vehicles[]
-}
-
-model mark_out_requests {
-  id             String   @id @default(uuid())
-  vehicle_id     String
-  requested_at   DateTime @default(now())
-  retrieve_at    DateTime
-  status         String   // PENDING, COMPLETED, CANCELLED
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  vehicle             vehicles? @relation(fields: [vehicle_id], references: [id])
 }
